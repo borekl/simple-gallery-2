@@ -154,6 +154,41 @@ sub add_item
 }
 
 
+#-----------------------------------------------------------------------------
+# Write out the index file.
+#-----------------------------------------------------------------------------
+
+sub write_index
+{
+  my ($self, $index_file) = @_;
+  my %data;
+  my $js = JSON->new()->pretty(1);
+  my $info = $self->info();
+
+  #--- target index file
+
+  if(!$index_file) {
+    $index_file = join('/', $self->dir(), 'index.json')
+  }
+
+  #--- collect the data
+
+  $data{'title'} = $info->{'title'} if exists $info->{'title'};
+  $data{'date'} = $info->{'date'} if exists $info->{'date'};
+
+  foreach my $item (@{$self->items()}) {
+    push(@{$data{'items'}}, $item->export());
+  }
+
+  write_binary(
+    $index_file,
+    $js->utf8()->encode(\%data),
+  );
+
+  return $self;
+}
+
+
 
 #=============================================================================
 
