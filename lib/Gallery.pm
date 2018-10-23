@@ -16,7 +16,7 @@ use lib "$Bin/lib";
 use Moo;
 use Cwd qw(getcwd);
 use JSON;
-use File::Slurp qw(read_file read_dir);
+use File::Slurper qw(read_binary write_binary read_dir);
 
 
 
@@ -77,7 +77,7 @@ sub BUILD
 
   #--- read and parse the info.json file
 
-  my $info_json = read_file($info);
+  my $info_json = read_binary($info);
   $self->_set_info(decode_json($info_json));
 
   #--- read directory contents

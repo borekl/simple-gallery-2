@@ -10,7 +10,6 @@ package Video;
 use v5.10;
 use Moo;
 
-use File::Slurp;
 use JSON;
 
 
@@ -80,7 +79,8 @@ sub probe
   my $file = join('/', 'video', $self->filename());
   open(my $fh, "avprobe -of json -show_streams $file 2>/dev/null |")
     or die 'Failed to invoke avprobe';
-  my $vi = decode_json(read_file($fh));
+  my $vi_json = do { local $/; <$fh>; };
+  my $vi = decode_json($vi_json);
   close($fh);
 
   #--- extract video resolution
