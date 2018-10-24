@@ -138,7 +138,8 @@ sub export
   my ($self) = @_;
 
   return {
-    ratio    => $self->ratio(),
+    width    => $self->w(),
+    height   => $self->h(),
     src      => $self->src(),
     basename => $self->basename(),
     type     => 'image',
