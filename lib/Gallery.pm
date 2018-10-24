@@ -173,8 +173,11 @@ sub write_index
 
   #--- collect the data
 
-  $data{'title'} = $info->{'title'} if exists $info->{'title'};
-  $data{'date'} = $info->{'date'} if exists $info->{'date'};
+  foreach my $key (qw(title date jquery-mosaic)) {
+    if(exists $info->{$key}) {
+      $data{$key} = $info->{$key}
+    }
+  }
 
   foreach my $item (@{$self->items()}) {
     push(@{$data{'items'}}, $item->export());
