@@ -125,6 +125,8 @@ sub export
   my ($self) = @_;
 
   return {
+    width    => $self->w(),
+    height   => $self->h(),
     ratio    => $self->ratio(),
     src      => $self->src(),
     basename => $self->basename(),
