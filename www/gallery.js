@@ -59,7 +59,7 @@ function image_browser(evt)
   })
   .appendTo('div.browser');
 
-  //--- closing the image browser
+  //--- function for navigating the image browser
 
   function navigate(action)
   {
