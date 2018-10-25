@@ -170,7 +170,8 @@ function render_page()
       // video
 
       else if(item.type == 'video') {
-        $('<video controls></video>', {
+        $('<video></video>', {
+          controls: "",
           src:      item.src,
           width:    item.width,
           height:   item.height,
