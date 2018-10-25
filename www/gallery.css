@@ -9,7 +9,7 @@ div.browser {
   height: 100vh;
 }
 
-div.browser img {
+div.browser img, div.browser video {
   display: block;
   width: 100%;
   height: 100%;

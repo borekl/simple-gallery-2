@@ -53,13 +53,51 @@ function image_browser(evt)
 
   //--- put the image into DOM
 
-  $('<img>', {
-    src:      item.src,
-    srcset:   item.srcset
-  })
-  .appendTo('div.browser');
+  show_item(n);
 
-  //--- function for navigating the image browser
+  //-------------------------------------------------------------------------
+  //--- function for putting the image into DOM -----------------------------
+  //-------------------------------------------------------------------------
+
+  function show_item(n)
+  {
+    var item = gallery.items[n], el, img;
+
+    //--- prepare IMG element
+
+    if(item.type == 'image') {
+      el = $('<img>', {
+        src:      item.src,
+        srcset:   item.srcset
+      });
+    } else
+
+    //--- prepare VIDEO element
+
+    if(item.type == 'video') {
+      el = $('<video></video>', {
+        controls: "",
+        autoplay: "1",
+        src:      item.src
+      });
+    }
+
+    //--- put the new image into DOM, replacing the current one
+
+    if(el) {
+      img = $('div.browser img, div.browser video');
+      console.log(img);
+      if(img.length) {
+        img.replaceWith(el);
+      } else {
+        $('div.browser').append(el);
+      }
+    }
+  }
+
+  //-------------------------------------------------------------------------
+  //--- function for navigating the image browser ---------------------------
+  //-------------------------------------------------------------------------
 
   function navigate(action)
   {
@@ -75,33 +113,25 @@ function image_browser(evt)
     // navigate to previous image
     else if(action == 'prev' && n > 0) {
       n = n - 1;
-      upcoming = gallery.items[n];
+      show_item(n);
     }
 
     // navigate to next image
     else if(action == 'next' && n < gallery.items.length - 1) {
       n = n + 1;
-      upcoming = gallery.items[n];
+      show_item(n);
     }
 
     // navigate to the first image
     else if(action == 'first') {
       n = 0;
-      upcoming = gallery.items[n];
+      show_item(n);
     }
 
     // navigate to the last image
     else if(action == 'last') {
       n = gallery.items.length - 1;
-      upcoming = gallery.items[n];
-    }
-
-    // switch to the selected image
-    if(upcoming) {
-      $('div.browser img').replaceWith($('<img>', {
-        src:    upcoming.src,
-        srcset: upcoming.srcset
-      }));
+      show_item(n);
     }
   }
 
