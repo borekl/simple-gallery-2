@@ -49,6 +49,12 @@ has w => ( is => 'rwp' );
 has h => ( is => 'rwp' );
 has ratio => ( is => 'rwp' );
 
+# image caption
+
+has caption => (
+  is => 'lazy',
+);
+
 
 
 #=============================================================================
@@ -69,6 +75,25 @@ sub _build_basename
   return $filename;
 }
 
+
+#-----------------------------------------------------------------------------
+# Build caption attribute
+#-----------------------------------------------------------------------------
+
+sub _build_caption
+{
+  my ($self) = @_;
+  my $gallery = $self->gallery()->info();
+
+  if(
+    exists $gallery->{'captions'}
+    && exists $gallery->{'captions'}{$self->filename()}
+  ) {
+    return $gallery->{'captions'}{$self->filename()};
+  } else {
+    return undef;
+  }
+}
 
 
 #-----------------------------------------------------------------------------
@@ -136,8 +161,9 @@ sub src
 sub export
 {
   my ($self) = @_;
+  my $gallery = $self->gallery();
 
-  return {
+  my %data = (
     width    => $self->w(),
     height   => $self->h(),
     src      => $self->src(),
@@ -146,7 +172,13 @@ sub export
     srcset   => [ map {
                   $_ . 'x/' . $self->filename . ' ' . $_ . 'x'
                 } @{$self->srcset()} ],
+  );
+
+  if($self->caption()) {
+    $data{'caption'} = $self->caption();
   }
+
+  return \%data;
 }
 
 
