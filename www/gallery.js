@@ -212,7 +212,10 @@ function render_page()
     }
 
     $('div.mosaic').Mosaic(
-      'jquery-mosaic' in gallery ? gallery["jquery-mosaic"] : {}
+      'jquery-mosaic' in gallery ? gallery["jquery-mosaic"] : {
+        "maxRowHeightPolicy" : "tail",
+        "innerGap" : 4
+      }
     );
 
   } else {
