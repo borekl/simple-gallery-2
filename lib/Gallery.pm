@@ -25,7 +25,8 @@ use File::Slurper qw(read_binary write_binary read_dir);
 #=============================================================================
 
 has dir => (
-  is => 'rwp',
+  is => 'ro',
+  default => sub { getcwd(); },
 );
 
 has info => (
@@ -55,12 +56,6 @@ has videos => (
 sub BUILD
 {
   my ($self) = @_;
-
-  #--- if dir is not defined, use the user's current directory
-
-  if(!defined $self->dir()) {
-    $self->_set_dir(getcwd());
-  }
 
   #--- check whether the directory exists
 
