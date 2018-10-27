@@ -131,9 +131,6 @@ sub BUILD
     $self->add_item($items{$itm}->probe());
   }
 
-  #--- read list of videos
-
-
 }
 
 
