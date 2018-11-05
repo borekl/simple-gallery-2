@@ -76,7 +76,7 @@ sub probe
 
   #--- read and decode avprobe output
 
-  my $file = join('/', 'video', $self->filename());
+  my $file = join('/', $self->gallery()->dir(), 'video', $self->filename());
   open(my $fh, "avprobe -of json -show_streams $file 2>/dev/null |")
     or die 'Failed to invoke avprobe';
   my $vi_json = do { local $/; <$fh>; };
