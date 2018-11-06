@@ -60,7 +60,7 @@ sub BUILD
   #--- check whether the directory exists
 
   if(!-d $self->dir()) {
-    die sprintf(qq{The specified directory %s does not exist}, $self->dir());
+    die 'The specified directory ' . $self->dir() . ' does not exist';
   }
 
   #--- check whether 'info.json' is present
