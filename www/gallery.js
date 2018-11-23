@@ -44,16 +44,7 @@ function click_action(jq_el, evt)
 function image_browser(evt)
 {
   var
-    n = Number($(evt.target).attr('data-n')),
-    item = gallery.items[n];
-
-  //--- hide the main gallery
-
-  $('div.gallery').hide();
-
-  //--- put the image into DOM
-
-  show_item(n);
+    n = Number($(evt.target).attr('data-n'));
 
   //-------------------------------------------------------------------------
   //--- function for putting the image into DOM -----------------------------
@@ -134,6 +125,14 @@ function image_browser(evt)
       show_item(n);
     }
   }
+
+  //--- hide the main gallery
+
+  $('div.gallery').hide();
+
+  //--- put the image into DOM
+
+  show_item(n);
 
   //--- click handler
 
