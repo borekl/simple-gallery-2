@@ -52,7 +52,18 @@ function image_browser(evt)
 
   function show_item(n)
   {
-    var item = gallery.items[n], el, img;
+    var item = gallery.items[n], el, old_el, caption;
+
+    //--- prepare caption (if specified)
+
+    if(
+      item.type == 'image'
+      && 'caption' in item
+    ) {
+      caption = $('<span>', {
+        class: 'caption'
+      }).text(item.caption);
+    }
 
     //--- prepare IMG element
 
@@ -76,12 +87,25 @@ function image_browser(evt)
     //--- put the new image into DOM, replacing the current one
 
     if(el) {
-      img = $('div.browser img, div.browser video');
-      console.log(img);
-      if(img.length) {
-        img.replaceWith(el);
+      // place the image
+      old_el = $('div.browser img, div.browser video');
+      if(old_el.length) {
+        old_el.replaceWith(el);
       } else {
         $('div.browser').append(el);
+      }
+      // place the caption
+      old_el = $('div.browser span.caption');
+      if(old_el.length) {
+        if(caption) {
+          old_el.replaceWith(caption);
+        } else {
+          old_el.remove();
+        }
+      } else {
+        if(caption) {
+          $('div.browser').append(caption);
+        }
       }
     }
   }
@@ -99,6 +123,7 @@ function image_browser(evt)
       $('document').off('keypress');
       $('div.browser').off('click').empty().hide();
       $('div.gallery').show();
+      $('div.mosaic').trigger('jqMosaicRefit');
     }
 
     // navigate to previous image
