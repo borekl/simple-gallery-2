@@ -201,6 +201,18 @@ function render_page()
     $('span.title').text(gallery.title);
   }
 
+  //--- navigation elements (if specified)
+
+  if('navigate' in gallery) {
+    for(var nav in gallery.navigate) {
+      if(nav) {
+        $('a#nav-' + nav)
+          .attr('href', gallery.navigate[nav])
+          .css('display', 'inline-block');
+      }
+    }
+  }
+
   //--- put in the images/videos
 
   if('items' in gallery) {

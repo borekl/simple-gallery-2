@@ -16,12 +16,48 @@ div.browser img, div.browser video {
   object-fit: contain;
 }
 
+div.gallery {
+  margin: 0.2em;
+}
+
+/*--------------------------------------------------------------------------*/
+/*--- top of the gallery ---------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+/*--- the container */
+
 div.gallery-top {
   margin: 0.2em 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+
+/*--- date */
 
 span.date {
   color: #888;
+}
+
+/*--- navigation elements on the right */
+
+div.nav a {
+  display: none;
+}
+
+div.nav img {
+  width: 1.4em;
+  padding: 0.2em;
+}
+
+div.nav {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+div.nav:hover {
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 /*--------------------------------------------------------------------------*/
