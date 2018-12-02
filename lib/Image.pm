@@ -16,31 +16,28 @@ use Image::Size;
 #=== ATTRIBUTES ==============================================================
 #=============================================================================
 
-# image's filename (without path)
+# images identification string, possibly basename or numerical index, this
+# has to be supplied by the caller
 
-has filename => (
+has id => (
   is => 'ro',
   required => 1,
 );
 
-# image's filename with extension stripped
-
-has basename => (
-  is => 'lazy',
-);
-
-# backlink to image's gallery
+# backlink to image's gallery object
 
 has gallery => (
   is => 'ro',
   required => 1,
 );
 
-# list of available DPRs
+# set of image DPR variants as hash DPR => image filename; at least one
+# image must be present; the image filename should be relative to base
+# gallery directory
 
-has srcset => (
+has imgset => (
   is => 'ro',
-  default => sub { [] },
+  default => sub { {} },
 );
 
 # image dimensions/aspect ratio
@@ -49,7 +46,7 @@ has w => ( is => 'rwp' );
 has h => ( is => 'rwp' );
 has ratio => ( is => 'rwp' );
 
-# image caption
+# optional image caption
 
 has caption => (
   is => 'lazy',
@@ -60,53 +57,6 @@ has caption => (
 #=============================================================================
 #=== METHODS =================================================================
 #=============================================================================
-
-#-----------------------------------------------------------------------------
-# Create basename attribute from filename
-#-----------------------------------------------------------------------------
-
-sub _build_basename
-{
-  my ($self) = @_;
-
-  my $filename = $self->filename();
-  $filename =~ s/\.[^.]+$//;
-
-  return $filename;
-}
-
-
-#-----------------------------------------------------------------------------
-# Build caption attribute
-#-----------------------------------------------------------------------------
-
-sub _build_caption
-{
-  my ($self) = @_;
-  my $gallery = $self->gallery()->info();
-
-  if(
-    exists $gallery->{'captions'}
-    && exists $gallery->{'captions'}{$self->filename()}
-  ) {
-    return $gallery->{'captions'}{$self->filename()};
-  } else {
-    return undef;
-  }
-}
-
-
-#-----------------------------------------------------------------------------
-# Add a DPR variant
-#-----------------------------------------------------------------------------
-
-sub add_dpr
-{
-  my ($self, $dpr) = @_;
-
-  push(@{$self->srcset()}, $dpr);
-  return $self;
-}
 
 
 #-----------------------------------------------------------------------------
@@ -120,15 +70,14 @@ sub probe
   #--- get the lowest available DPR, we are assuming this will never be
   #--- below 1
 
-  my ($dpr) = sort { $a <=> $b } @{$self->srcset()};
-  die "Image '" . $self->filename() . "' has no srcset variants" if !$dpr;
+  my ($dpr) = sort { $a <=> $b } keys %{$self->imgset()};
+  die "Image '" . $self->id() . "' has no srcset variants" if !$dpr;
 
   #--- get image dimensions
 
-  my ($w, $h) = imgsize(
-    join('/', $self->gallery()->dir(), "${dpr}x", $self->filename())
-  );
-  die "Cannot get image dimensions" if !$w || !$h;
+  my $file = join('/', $self->gallery()->dir(), $self->imgset()->{$dpr});
+  my ($w, $h) = imgsize($file);
+  die "Cannot get image dimensions for $file" if !$w || !$h;
 
   $self->_set_w(int($w / $dpr));
   $self->_set_h(int($h / $dpr));
@@ -149,8 +98,38 @@ sub src
 {
   my ($self) = @_;
 
-  my ($dpr) = sort { $b <=> $a } @{$self->srcset()};
-  return join('/', $dpr . 'x', $self->filename());
+  my ($dpr) = sort { $b <=> $a } keys %{$self->imgset()};
+  $self->imgset()->{$dpr};
+}
+
+
+#-----------------------------------------------------------------------------
+# Return the SRCSET attribute value.
+#-----------------------------------------------------------------------------
+
+sub srcset
+{
+  my ($self) = @_;
+  my $is = $self->imgset();
+
+  return join(', ',
+    map { $is->{$_} . ' ' . $_ . 'x'  }
+    keys %{$is}
+  );
+}
+
+
+#-----------------------------------------------------------------------------
+# Add an image to imgset.
+#-----------------------------------------------------------------------------
+
+sub add_image
+{
+  my ($self, $dpr, $file) = @_;
+
+  $self->imgset()->{$dpr} = $file;
+
+  return $self;
 }
 
 
@@ -164,14 +143,12 @@ sub export
   my $gallery = $self->gallery();
 
   my %data = (
+    id       => $self->id(),
     width    => $self->w(),
     height   => $self->h(),
     src      => $self->src(),
-    basename => $self->basename(),
     type     => 'image',
-    srcset   => [ map {
-                  $_ . 'x/' . $self->filename . ' ' . $_ . 'x'
-                } @{$self->srcset()} ],
+    srcset   => $self->srcset(),
   );
 
   if($self->caption()) {

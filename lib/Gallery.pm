@@ -6,9 +6,6 @@
 
 package Gallery;
 
-use Image;
-use Video;
-
 use v5.10;
 
 use FindBin qw($Bin);
@@ -18,6 +15,10 @@ use Cwd qw(getcwd);
 use JSON;
 use File::Slurper qw(read_binary write_binary read_dir);
 use File::stat;
+
+use Image;
+use Video;
+
 
 
 #=============================================================================
@@ -100,23 +101,52 @@ sub BUILD
     [ map { /(\d)x/; $1; } grep { /^[1-4]x$/; } @dirs ]
   );
 
-  #--- read list of images/videos
+  #--- read list of images
 
   my %items;
 
+  # loop over available DPR directories
+
   foreach my $dpr (@{$self->imgset()}) {
-    do {
-      if(!exists $items{$_}) {
-        $items{$_} = Image->new(
-          filename => $_,
+
+  # loop over all JPEG files
+
+    for my $file (
+      grep { /\.jpg$/ }
+      read_dir(join('/', $self->dir(), $dpr . 'x'))
+    ) {
+
+  # image's basename will serve as image id
+
+      my $id = $file;
+      $id =~ s/\.jpg$//;
+
+  # if we don't have Image instance yet, create one
+
+      if(!exists $items{$id}) {
+        # see if there is an image caption
+        my $caption;
+        if(
+          exists $self->info()->{'captions'}
+          && exists $self->info()->{'captions'}{$id}
+        ) {
+          $caption = $self->info()->{'captions'}{$id}
+        }
+        # create Image instance
+        $items{$id} = Image->new(
+          id => $id,
           gallery => $self,
+          caption => $caption,
         );
       }
-      $items{$_}->add_dpr($dpr);
-    } for grep { /\.jpg$/ } read_dir(
-      join('/', $self->dir(), $dpr . 'x')
-    );
+
+  # add current image to the image set
+
+      $items{$id}->add_image($dpr => "${dpr}x/$file");
+    }
   }
+
+  #--- read list of videos
 
   my $vid_path = join('/', $self->dir(), 'video');
 
