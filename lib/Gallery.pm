@@ -17,7 +17,7 @@ use Moo;
 use Cwd qw(getcwd);
 use JSON;
 use File::Slurper qw(read_binary write_binary read_dir);
-
+use File::stat;
 
 
 #=============================================================================
@@ -47,6 +47,9 @@ has videos => (
   is => 'rwp',
 );
 
+has update_needed => (
+  is => 'rwp',
+);
 
 
 #=============================================================================
@@ -74,6 +77,16 @@ sub BUILD
 
   my $info_json = read_binary($info);
   $self->_set_info(decode_json($info_json));
+
+  #--- decide whether the index.json file needs to be updated
+
+  my $index = $self->dir() . '/index.json';
+  if(
+    !-f $info
+    || stat($info)->mtime() > stat($index)->mtime()
+  ) {
+    $self->_set_update_needed(1);
+  }
 
   #--- read directory contents
 
