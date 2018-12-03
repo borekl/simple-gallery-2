@@ -92,8 +92,8 @@ sub BUILD
   #--- read directory contents
 
   my @dir = read_dir($self->dir());
-  my @dirs = grep { -d $_ } @dir;
-  my @files = grep { -f $_ } @dir;
+  my @dirs = grep { -d $self->dir() . '/' . $_ } @dir;
+  my @files = grep { -f $self->dir() . '/' . $_ } @dir;
 
   #--- srcset DPRs available
 
