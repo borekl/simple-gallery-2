@@ -112,10 +112,9 @@ sub srcset
   my ($self) = @_;
   my $is = $self->imgset();
 
-  return join(', ',
-    map { $is->{$_} . ' ' . $_ . 'x'  }
-    keys %{$is}
-  );
+  my @re = map { $is->{$_} . ' ' . $_ . 'x'  } keys %{$is};
+
+  return wantarray ? @re : join(', ', @re);
 }
 
 
