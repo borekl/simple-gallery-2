@@ -15,6 +15,7 @@ use Cwd qw(getcwd);
 use JSON;
 use File::Slurper qw(read_binary write_binary read_dir);
 use File::stat;
+use Carp;
 
 use Image;
 use Video;
@@ -44,12 +45,18 @@ has items => (
   default => sub { [] },
 );
 
-has videos => (
+has update_needed => (
   is => 'rwp',
 );
 
-has update_needed => (
+has count_images => (
   is => 'rwp',
+  default => 0,
+);
+
+has count_videos => (
+  is => 'rwp',
+  default => 0,
 );
 
 
@@ -172,19 +179,33 @@ sub BUILD
 }
 
 
+
 #=============================================================================
 #=== METHODS =================================================================
 #=============================================================================
 
 #-----------------------------------------------------------------------------
-# Add image(s) to the gallery.
+# Add image(s) or video(s) to the gallery.
 #-----------------------------------------------------------------------------
 
 sub add_item
 {
   my ($self, @items) = @_;
 
-  push(@{$self->items()}, @items);
+  foreach my $item (@items) {
+    if(!ref($item)) {
+      croak 'Invalid argument passed to add_item() (not a reference)';
+    }
+    if($item->isa('Image')) {
+      $self->_set_count_images($self->count_images() + 1);
+    } elsif($item->isa('Video')) {
+      $self->_set_count_videos($self->count_videos() + 1);
+    } else {
+      croak 'Invalid argument passed to add_item() (not an Image or Video)';
+    }
+    push(@{$self->items()}, $item);
+  }
+
   return $self;
 }
 
