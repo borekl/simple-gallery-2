@@ -59,6 +59,16 @@ has count_videos => (
   default => 0,
 );
 
+# optional thumbnail image (an Image instance) for the gallery
+
+has thumbnail => (
+  is => 'rwp',
+  isa => sub {
+    die 'Not an Image instance' unless ref $_[0] && $_[0]->isa('Image');
+  },
+);
+
+
 
 #=============================================================================
 #=== CONSTRUCTOR =============================================================
@@ -174,6 +184,25 @@ sub BUILD
 
   foreach my $itm (sort keys %items) {
     $self->add_item($items{$itm}->probe());
+  }
+
+  #--- check if there are gallery thumbnails
+
+  # thumbnails must be present in gallery's base directory and they have name
+  # thumb.Nx.jpg where N is DPR; multiple DPR variants can be present;
+  # currently only integer DPRs are supported for thumbnails
+
+  my @thumb_files = grep { /^thumb.\dx.jpg$/ } @files;
+  if(@thumb_files) {
+    my $thumb = Image->new(
+      id => 'thumb',
+      gallery => $self,
+    );
+    foreach my $th (@thumb_files) {
+      $th =~ /^thumb.(\d)x.jpg$/;
+      $thumb->add_image($1 => $th);
+    }
+    $self->_set_thumbnail($thumb->probe());
   }
 
 }
