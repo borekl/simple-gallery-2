@@ -68,6 +68,27 @@ has thumbnail => (
   },
 );
 
+# next/prev galleries
+
+has next => (
+  is => 'rw',
+);
+
+has prev => (
+  is => 'rw',
+);
+
+# optional backreference to GallerySet, if this is set, the gallery will
+# know it's part of a set of galleries and adjust some aspects of itself
+
+has gset => (
+  is => 'ro',
+  isa => sub {
+    die 'Not a GallerySet instance'
+    unless ref $_[0] && $_[0]->isa('GallerySet');
+  },
+);
+
 
 
 #=============================================================================
@@ -280,9 +301,27 @@ sub write_index
     }
   }
 
+  #--- collect the gallery items (images and videos)
+
   foreach my $item (@{$self->items()}) {
     push(@{$data{'items'}}, $item->export());
   }
+
+  #--- if this gallery is part of a set, handle navigation items
+
+  if($self->gset()) {
+    $data{'navigate'}{'exit'} = '../';
+    if($self->next()) {
+      $data{'navigate'}{'next'}
+      = '../' . $self->next()->last_path_element() . '/';
+    }
+    if($self->prev()) {
+      $data{'navigate'}{'prev'}
+      = '../' . $self->prev()->last_path_element() . '/';
+    }
+  }
+
+  #--- write resulting index.json
 
   write_binary(
     $index_file,

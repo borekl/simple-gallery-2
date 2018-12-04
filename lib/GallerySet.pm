@@ -63,13 +63,22 @@ sub BUILD
     die 'No valid gallery directories were found';
   }
 
-  #--- try to scan the galleries
+  #--- try to scan the galleries, this populates the 'galleries'
+  #--- array and also links the galleries through their next and prev
+  #--- atributes
 
   my $galleries = $self->galleries();
 
+  my $prev_g;
   foreach my $gdir (sort @dirs) {
-    my $g = Gallery->new(dir => join('/', $self->dir(), $gdir));
+    my $g = Gallery->new(
+      gset => $self,
+      dir => join('/', $self->dir(), $gdir),
+      prev => $prev_g,
+    );
+    if($prev_g) { $prev_g->next($g); }
     push(@$galleries, $g);
+    $prev_g = $g;
   }
 
   if(!@$galleries) {
@@ -138,7 +147,6 @@ sub update_galleries
 
   $self->iter(sub {
     my $g = shift;
-    return if !$g->update_needed();
     $g->write_index();
     $cb->($g) if ref $cb;
   });
