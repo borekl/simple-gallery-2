@@ -11,7 +11,6 @@ use Moo;
 use Image::Size;
 
 
-
 #=============================================================================
 #=== ATTRIBUTES ==============================================================
 #=============================================================================
@@ -139,7 +138,6 @@ sub add_image
 sub export
 {
   my ($self) = @_;
-  my $gallery = $self->gallery();
 
   my %data = (
     id       => $self->id(),
@@ -147,7 +145,7 @@ sub export
     height   => $self->h(),
     src      => $self->src(),
     type     => 'image',
-    srcset   => $self->srcset(),
+    srcset   => join(', ', $self->srcset()),
   );
 
   if($self->caption()) {
