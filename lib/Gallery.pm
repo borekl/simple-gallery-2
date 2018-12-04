@@ -117,6 +117,20 @@ sub BUILD
   my $info_json = read_binary($info);
   $self->_set_info(decode_json($info_json));
 
+  #--- for compatibility: captions should normally reference image id,
+  #--- which is currently the basename, but because the previous version
+  #--- of the simple-gallery used filenames for this purpose, we suport both
+  #--- ways by means of transforming the old way to the new on the fly
+
+  if(exists $self->info()->{'captions'}) {
+    foreach my $id (keys %{$self->info()->{'captions'}}) {
+      if($id =~ /^(.*)\.jpg$/) {
+        $self->info()->{'captions'}{$1} = $self->info()->{'captions'}{$id};
+        delete $self->info()->{'captions'}{$id};
+      }
+    }
+  }
+
   #--- decide whether the index.json file needs to be updated
 
   my $index = $self->dir() . '/index.json';
