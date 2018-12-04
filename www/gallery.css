@@ -1,7 +1,11 @@
+@import url(https://fonts.googleapis.com/css?family=Work+Sans:400,200&subset=latin,latin-ext);
+
 body {
-  background-color: black;
-  color: white;
   margin: 0;
+  background-color: black;
+  color : #ddd;
+  font-family : 'Work Sans', sans-serif;
+  font-size : 16pt;
 }
 
 div.browser {
@@ -46,8 +50,7 @@ div.nav a {
 }
 
 div.nav img {
-  width: 1.4em;
-  padding: 0.2em;
+  width: 1em;
 }
 
 div.nav {
