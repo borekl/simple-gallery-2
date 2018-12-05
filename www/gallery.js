@@ -1,6 +1,29 @@
 (function() {
 
 var gallery;
+var kbd = [];
+
+
+/*==========================================================================*
+  Keydown handler management.
+ *==========================================================================*/
+
+function kbd_handler_push(callback)
+{
+  kbd.push(callback);
+  $(document).off('keydown').on('keydown', callback);
+  console.log('Kbd handler PUSH, %d', kbd.length);
+}
+
+function kbd_handler_pop()
+{
+  $(document).off('keydown')
+  kbd.pop();
+  if(kbd.length) {
+    $(document).on('keydown', kbd[kbd.length - 1]);
+  }
+  console.log('Kbd handler POP, %d', kbd.length);
+}
 
 
 /*==========================================================================*
@@ -120,7 +143,7 @@ function image_browser(evt)
 
     // exit the browser
     if(action == 'exit') {
-      $('document').off('keypress');
+      kbd_handler_pop();
       $('div.browser').off('click').empty().hide();
       $('div.gallery').show();
       $('div.mosaic').trigger('jqMosaicRefit');
@@ -171,12 +194,13 @@ function image_browser(evt)
 
   //--- keypress handler
 
-  $(document).on('keydown', function(evt) {
+  kbd_handler_push(function(evt) {
     if(evt.keyCode == 37) { navigate('prev'); }
     if(evt.keyCode == 39) { navigate('next'); }
     if(evt.keyCode == 27) { navigate('exit'); }
     if(evt.keyCode == 38) { navigate('first'); }
     if(evt.keyCode == 40) { navigate('last'); }
+    return false;
   });
 
   //--- make everything visible
@@ -275,6 +299,15 @@ function render_page()
     $('<p>Sorry, this gallery seems to be misconfigured</p>')
     .appendTo('body');
   }
+
+  //--- keyboard shortcus
+
+  kbd_handler_push(function(evt) {
+    if(evt.keyCode == 37) { navigate('prev'); }
+    if(evt.keyCode == 39) { navigate('next'); }
+    if(evt.keyCode == 27) { navigate('exit'); }
+    return false;
+  });
 }
 
 
