@@ -309,7 +309,7 @@ sub write_index
 
   #--- collect the data
 
-  foreach my $key (qw(title date jquery-mosaic navigate)) {
+  foreach my $key (qw(title date jquery-mosaic navigate tags)) {
     if(exists $info->{$key}) {
       $data{$key} = $info->{$key}
     }
