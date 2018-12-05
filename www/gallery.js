@@ -316,6 +316,34 @@ function render_page()
  *==========================================================================*/
 
 $(document).ready(function() {
+
+  $('body').overlayScrollbars({
+    className: "os-theme-dark",
+    resize: "none",
+    sizeAutoCapable: false,
+    clipAlways: true,
+    normalizeRTL: true,
+    paddingAbsolute: false,
+    autoUpdate: null,
+    autoUpdateInterval: 33,
+    nativeScrollbarsOverlaid: {
+    showNativeScrollbars: false,
+    initialize: true
+  },
+  overflowBehavior : {
+    x: "hidden",
+    y: "scroll"
+  },
+  scrollbars : {
+    visibility: "hidden",
+    autoHide: "move",
+    autoHideDelay: 800,
+    dragScrolling: true,
+    clickScrolling: true,
+    touchSupport: true
+    }
+  });
+
   $.get("index.json", function(data) { gallery = data; render_page(); });
 });
 
