@@ -219,14 +219,16 @@ function render_page()
 
   function navigate(action)
   {
-    if(action == 'next' && 'next' in gallery.navigate) {
-      window.location.assign(gallery.navigate.next);
-    }
-    if(action == 'prev' && 'prev' in gallery.navigate) {
-      window.location.assign(gallery.navigate.prev);
-    }
-    if(action == 'exit' && 'exit' in gallery.navigate) {
-      window.location.assign(gallery.navigate.exit);
+    if('navigate' in gallery) {
+      if(action == 'next' && 'next' in gallery.navigate) {
+        window.location.assign(gallery.navigate.next);
+      }
+      if(action == 'prev' && 'prev' in gallery.navigate) {
+        window.location.assign(gallery.navigate.prev);
+      }
+      if(action == 'exit' && 'exit' in gallery.navigate) {
+        window.location.assign(gallery.navigate.exit);
+      }
     }
   }
 
