@@ -18,6 +18,14 @@ use JSON;
 #=== ATTRIBUTES ==============================================================
 #=============================================================================
 
+# video's identification string, possibly basename or numerical index, this
+# has to be supplied by the caller
+
+has id => (
+  is => 'ro',
+  required => 1,
+);
+
 # video's filename (without path)
 
 has filename => (
@@ -125,6 +133,7 @@ sub export
   my ($self) = @_;
 
   return {
+    id       => $self->id(),
     width    => $self->w(),
     height   => $self->h(),
     ratio    => $self->ratio(),

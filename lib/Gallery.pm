@@ -194,9 +194,16 @@ sub BUILD
   if(-d $vid_path) {
     do {
       if(!exists $items{$_}) {
+
+        # image's basename will serve as image id
+
+        my $id = $_;
+        $id =~ s/\..*$//;
+
         $items{$_} = Video->new(
          filename => $_,
          gallery => $self,
+         id => $id,
         );
       }
     } for grep { /\.mp4$/ } read_dir(
