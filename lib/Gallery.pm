@@ -14,7 +14,6 @@ use Moo;
 use Cwd qw(getcwd);
 use JSON;
 use File::Slurper qw(read_binary write_binary read_dir);
-use File::stat;
 use Carp;
 
 use Image;
@@ -129,16 +128,6 @@ sub BUILD
         delete $self->info()->{'captions'}{$id};
       }
     }
-  }
-
-  #--- decide whether the index.json file needs to be updated
-
-  my $index = $self->dir() . '/index.json';
-  if(
-    !-f $info
-    || stat($info)->mtime() > stat($index)->mtime()
-  ) {
-    $self->_set_update_needed(1);
   }
 
   #--- read directory contents
