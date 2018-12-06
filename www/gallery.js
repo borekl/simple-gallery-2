@@ -12,7 +12,6 @@ function kbd_handler_push(callback)
 {
   kbd.push(callback);
   $(document).off('keydown').on('keydown', callback);
-  console.log('Kbd handler PUSH, %d', kbd.length);
 }
 
 function kbd_handler_pop()
@@ -22,7 +21,6 @@ function kbd_handler_pop()
   if(kbd.length) {
     $(document).on('keydown', kbd[kbd.length - 1]);
   }
-  console.log('Kbd handler POP, %d', kbd.length);
 }
 
 
