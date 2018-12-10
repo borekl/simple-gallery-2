@@ -193,12 +193,12 @@ function image_browser(evt)
   //--- keypress handler
 
   kbd_handler_push(function(evt) {
-    if(evt.keyCode == 37) { navigate('prev'); }
-    if(evt.keyCode == 39) { navigate('next'); }
-    if(evt.keyCode == 27) { navigate('exit'); }
-    if(evt.keyCode == 38) { navigate('first'); }
-    if(evt.keyCode == 40) { navigate('last'); }
-    return false;
+    if(evt.keyCode == 37) { navigate('prev'); return false; }
+    if(evt.keyCode == 39) { navigate('next'); return false; }
+    if(evt.keyCode == 27) { navigate('exit'); return false; }
+    if(evt.keyCode == 38) { navigate('first'); return false; }
+    if(evt.keyCode == 40) { navigate('last'); return false; }
+    return true;
   });
 
   //--- make everything visible
@@ -303,10 +303,10 @@ function render_page()
   //--- keyboard shortcus
 
   kbd_handler_push(function(evt) {
-    if(evt.keyCode == 37) { navigate('prev'); }
-    if(evt.keyCode == 39) { navigate('next'); }
-    if(evt.keyCode == 27) { navigate('exit'); }
-    return false;
+    if(evt.keyCode == 37) { navigate('prev'); return false; }
+    if(evt.keyCode == 39) { navigate('next'); return false; }
+    if(evt.keyCode == 27) { navigate('exit'); return false; }
+    return true;
   });
 }
 
