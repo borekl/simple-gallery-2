@@ -232,6 +232,10 @@ function render_page()
     }
   }
 
+  //--- set document title
+
+  window.document.title = gallery.title;
+
   //--- fill in date and title
 
   if('date' in gallery) {
