@@ -203,6 +203,10 @@ sub write_index
         ),
       };
     }
+
+    if(exists $g->info()->{'tags'}) {
+      $data{'dirs'}{$id}{'tags'} = $g->info()->{'tags'};
+    }
   });
 
   #--- write out gset.json, the gallery set index; this is intended to be
