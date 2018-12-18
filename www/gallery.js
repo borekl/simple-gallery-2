@@ -1,6 +1,5 @@
 (function() {
 
-var gallery;
 var kbd = [];
 
 
@@ -62,7 +61,7 @@ function click_action(jq_el, evt)
   user to browse them with keyboard/mouse.
  *==========================================================================*/
 
-function image_browser(evt)
+function image_browser(evt, g)
 {
   var
     n = Number($(evt.target).attr('data-n'));
@@ -73,7 +72,7 @@ function image_browser(evt)
 
   function show_item(n)
   {
-    var item = gallery.items[n], el, old_el, caption;
+    var item = g.items[n], el, old_el, caption;
 
     //--- prepare caption (if specified)
 
@@ -154,7 +153,7 @@ function image_browser(evt)
     }
 
     // navigate to next image
-    else if(action == 'next' && n < gallery.items.length - 1) {
+    else if(action == 'next' && n < g.items.length - 1) {
       n = n + 1;
       show_item(n);
     }
@@ -167,7 +166,7 @@ function image_browser(evt)
 
     // navigate to the last image
     else if(action == 'last') {
-      n = gallery.items.length - 1;
+      n = g.items.length - 1;
       show_item(n);
     }
   }
@@ -211,48 +210,50 @@ function image_browser(evt)
   Render the gallery using the jquery.mosaic plugin.
  *==========================================================================*/
 
-function render_page()
+function gallery(d)
 {
+  var g = d.idx;  // data from gallery's index.json
+
   //------------------------------------------------------------------------
   //--- function for navigating the gallery --------------------------------
   //------------------------------------------------------------------------
 
   function navigate(action)
   {
-    if('navigate' in gallery) {
-      if(action == 'next' && 'next' in gallery.navigate) {
-        window.location.assign(gallery.navigate.next);
+    if('navigate' in g) {
+      if(action == 'next' && 'next' in g.navigate) {
+        window.location.assign(g.navigate.next);
       }
-      if(action == 'prev' && 'prev' in gallery.navigate) {
-        window.location.assign(gallery.navigate.prev);
+      if(action == 'prev' && 'prev' in g.navigate) {
+        window.location.assign(g.navigate.prev);
       }
-      if(action == 'exit' && 'exit' in gallery.navigate) {
-        window.location.assign(gallery.navigate.exit);
+      if(action == 'exit' && 'exit' in g.navigate) {
+        window.location.assign(gd.navigate.exit);
       }
     }
   }
 
   //--- set document title
 
-  window.document.title = gallery.title;
+  window.document.title = g.title;
 
   //--- fill in date and title
 
-  if('date' in gallery) {
-    $('span.date').text(gallery.date);
+  if('date' in g) {
+    $('span.date').text(g.date);
   }
 
-  if('title' in gallery) {
-    $('span.title').text(gallery.title);
+  if('title' in g) {
+    $('span.title').text(g.title);
   }
 
   //--- navigation elements (if specified)
 
-  if('navigate' in gallery) {
-    for(var nav in gallery.navigate) {
+  if('navigate' in g) {
+    for(var nav in g.navigate) {
       if(nav) {
         $('a#nav-' + nav)
-          .attr('href', gallery.navigate[nav])
+          .attr('href', g.navigate[nav])
           .css('display', 'inline-block');
       }
     }
@@ -260,9 +261,9 @@ function render_page()
 
   //--- put in the images/videos
 
-  if('items' in gallery) {
-    for(var i = 0, max = gallery.items.length; i < max; i++) {
-      var item = gallery.items[i];
+  if('items' in g) {
+    for(var i = 0, max = g.items.length; i < max; i++) {
+      var item = g.items[i];
 
       // image
 
@@ -274,7 +275,7 @@ function render_page()
           height:   item.height,
           "data-n": i
         })
-        .on('click', image_browser)
+        .on('click', function(evt) { image_browser(evt, g) })
         .appendTo('div.mosaic');
       }
 
@@ -293,7 +294,7 @@ function render_page()
     }
 
     $('div.mosaic').Mosaic(
-      'jquery-mosaic' in gallery ? gallery["jquery-mosaic"] : {
+      'jquery-mosaic' in g ? g["jquery-mosaic"] : {
         "maxRowHeightPolicy" : "tail",
         "innerGap" : 4
       }
@@ -316,10 +317,65 @@ function render_page()
 
 
 /*==========================================================================*
+  Attempt to load index.json. This returns a Promise object, that on success
+  returns object with { data, path, itemid } keys (the last one only when
+  deep linking to specific item); on error HTTP response message is
+  returned.
+ *==========================================================================*/
+
+function load_gallery_index()
+{
+  var path, path1, path2;
+  var d = $.Deferred();     // jQuery Deferred object
+  var q;                    // AJAX query promise
+
+  // get paths to index.json on both current level and one directory up
+
+  path = document.location.pathname.split('/');
+  path.pop();
+  path1 = path.join('/')
+
+  item_id = path.pop();
+  path2 = path.join('/');
+
+  // try to load index.json from current directory level, if successful
+  // terminate lookup and return parsed data
+
+  q = $.get(path1 + '/index.json');
+  q.done(function(data) {
+    d.resolve({ idx: data, path: path1 });
+  });
+
+  // if not successful AND the response code is 404, try to find the index
+  // at one directory level up
+
+  q.fail(function(xhr) {
+    if(xhr.status == 404) {
+      var q_again = $.get(path2 + '/index.json');
+      q_again.done(function(data) {
+        d.resolve({ idx: data, path: path2, itemid: item_id });
+      });
+      q_again.fail(function(xhr) {
+        d.reject(xhr.status + ' ' + xhr.statusText);
+      });
+    } else {
+      d.reject(xhr.status + ' ' + xhr.statusText);
+    }
+  });
+
+  // finish
+
+  return d.promise();
+}
+
+
+/*==========================================================================*
   MAIN
  *==========================================================================*/
 
 $(document).ready(function() {
+
+  //--- initialize Overlay Scrollbars library
 
   $('body').overlayScrollbars({
     className: "os-theme-dark",
@@ -348,7 +404,18 @@ $(document).ready(function() {
     }
   });
 
-  $.get("index.json", function(data) { gallery = data; render_page(); });
+  //--- gallery invocation
+
+  load_gallery_index().then(
+    function(d) {
+      console.log('Loading successful, path=%s, itemid=%s', d.path, d.itemid);
+      gallery(d);
+    },
+    function(err) {
+      console.log('Loading failed (%s)', err);
+    }
+  );
+
 });
 
 
