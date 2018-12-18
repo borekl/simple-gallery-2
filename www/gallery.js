@@ -63,8 +63,19 @@ function click_action(jq_el, evt)
 
 function image_browser(evt, g)
 {
-  var
-    n = Number($(evt.target).attr('data-n'));
+  var id, n;
+
+  if(evt instanceof Object) {
+    id = $(evt.target).attr('data-id');
+  } else {
+    id = evt;
+  }
+
+  //--- find the actual item by its item id
+
+  n = g.items.findIndex(function(el) {
+    return el.id == id;
+  });
 
   //-------------------------------------------------------------------------
   //--- function for putting the image into DOM -----------------------------
@@ -269,11 +280,11 @@ function gallery(d)
 
       if(item.type == 'image') {
         $('<img>', {
-          src:      item.src,
-          srcset:   item.srcset,
-          width:    item.width,
-          height:   item.height,
-          "data-n": i
+          src:       item.src,
+          srcset:    item.srcset,
+          width:     item.width,
+          height:    item.height,
+          "data-id": item.id,
         })
         .on('click', function(evt) { image_browser(evt, g) })
         .appendTo('div.mosaic');
@@ -284,10 +295,10 @@ function gallery(d)
       else if(item.type == 'video') {
         $('<video></video>', {
           controls: "",
-          src:      item.src,
-          width:    item.width,
-          height:   item.height,
-          "data-n": i
+          src:       item.src,
+          width:     item.width,
+          height:    item.height,
+          "data-id": item.id,
         })
         .appendTo('div.mosaic');
       }
