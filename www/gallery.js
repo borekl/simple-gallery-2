@@ -226,22 +226,17 @@ function gallery(d)
   var g = d.idx;  // data from gallery's index.json
 
   //------------------------------------------------------------------------
-  //--- function for navigating the gallery --------------------------------
+  //--- function for navigating between galleries --------------------------
   //------------------------------------------------------------------------
 
   function navigate(action)
   {
-    if('navigate' in g) {
-      if(action == 'next' && 'next' in g.navigate) {
-        window.location.assign(g.navigate.next);
-      }
-      if(action == 'prev' && 'prev' in g.navigate) {
-        window.location.assign(g.navigate.prev);
-      }
-      if(action == 'exit' && 'exit' in g.navigate) {
-        window.location.assign(gd.navigate.exit);
-      }
-    }
+    if(
+      !'navigate' in g             // no navigation directions defined
+      || !action in g.navigate     // this particular navigation not defined
+    ) { return; }
+
+    window.location.assign(g.navigate[action]);
   }
 
   //--- set document title
