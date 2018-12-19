@@ -243,7 +243,7 @@ function image_browser(evt, g)
   Render the gallery using the jquery.mosaic plugin.
  *==========================================================================*/
 
-function gallery(d)
+function gallery(d, item_id)
 {
   var g = d.idx;  // data from gallery's index.json
 
@@ -259,6 +259,12 @@ function gallery(d)
     ) { return; }
 
     window.location.assign(g.navigate[action]);
+  }
+
+  //
+
+  if(item_id) {
+    image_browser(item_id, g);
   }
 
   //--- set document title
@@ -381,7 +387,7 @@ function load_gallery_index()
     if(xhr.status == 404) {
       var q_again = $.get(path2 + '/index.json');
       q_again.done(function(data) {
-        d.resolve({ idx: data, path: path2, itemid: item_id });
+        d.resolve({ idx: data, path: path2 }, item_id );
       });
       q_again.fail(function(xhr) {
         d.reject(xhr.status + ' ' + xhr.statusText);
@@ -435,9 +441,10 @@ $(document).ready(function() {
   //--- gallery invocation
 
   load_gallery_index().then(
-    function(d) {
-      console.log('Loading successful, path=%s, itemid=%s', d.path, d.itemid);
-      gallery(d);
+    function(d, item_id) {
+      console.log('Loading successful, path=%s, itemid=%s', d.path, item_id);
+      $('<base>').attr('href', d.path + '/').appendTo($('head'));
+      gallery(d, item_id);
     },
     function(err) {
       console.log('Loading failed (%s)', err);
