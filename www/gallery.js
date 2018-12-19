@@ -24,6 +24,28 @@ function kbd_handler_pop()
 
 
 /*==========================================================================*
+  Convert keycode to navigation direction word.
+ *==========================================================================*/
+
+function keycode_to_nav(keycode)
+{
+  var lut = {
+    '37': 'prev',
+    '39': 'next',
+    '27': 'exit',
+    '38': 'first',
+    '40': 'last'
+  };
+
+  if(keycode.toString in lut) {
+    return lut[keycode];
+  } else {
+    return null;
+  }
+}
+
+
+/*==========================================================================*
   For given 'width' and 'pos' return in what band out of 'bands' the
   position is.
  *==========================================================================*/
@@ -203,12 +225,12 @@ function image_browser(evt, g)
   //--- keypress handler
 
   kbd_handler_push(function(evt) {
-    if(evt.keyCode == 37) { navigate('prev'); return false; }
-    if(evt.keyCode == 39) { navigate('next'); return false; }
-    if(evt.keyCode == 27) { navigate('exit'); return false; }
-    if(evt.keyCode == 38) { navigate('first'); return false; }
-    if(evt.keyCode == 40) { navigate('last'); return false; }
-    return true;
+    var nav = keycode_to_nav(evt.keyCode);
+    if(!nav) {
+      return true;
+    } else {
+      navigate(nav); return false;
+    }
   });
 
   //--- make everything visible
