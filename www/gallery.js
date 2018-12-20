@@ -151,8 +151,8 @@ function gallery(d, item_id)
 
   function set_window_title()
   {
-    if(item_id) {
-      window.document.title = g.title + ' : ' + item_id;
+    if(mode == 'browser') {
+      window.document.title = g.title + ' : ' + g.items[item_idx].id;
     } else {
       window.document.title = g.title;
     }
@@ -280,8 +280,8 @@ function gallery(d, item_id)
     if(mode == 'browser') {
       $('div.browser').hide();
       $('div.gallery').show();
-      set_window_title();
       mode = 'gallery';
+      set_window_title();
     }
     //--- put in the images/videos and run the mosaic
 
