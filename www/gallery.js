@@ -37,7 +37,7 @@ function keycode_to_nav(keycode)
     '40': 'last'
   };
 
-  if(keycode.toString in lut) {
+  if(keycode in lut) {
     return lut[keycode];
   } else {
     return null;
@@ -79,25 +79,123 @@ function click_action(jq_el, evt)
 
 
 /*==========================================================================*
-  Picture browser. It just displays one picture at maximum size and allows
-  user to browse them with keyboard/mouse.
+  This implements the gallery logic. The two arguments define the initial
+  state of the gallery:
+
+    d ......... this contains two keys: 'idx' is the contents of 'index.json'
+                file, 'path' contains gallery's base path
+    item_id ... if this is defined, it contains an item id (basename of a
+                gallery image or video), that the gallery is to start with
+                in image browsing mode.
  *==========================================================================*/
 
-function image_browser(evt, g)
+function gallery(d, item_id)
 {
-  var id, n;
+  // data from gallery's index.json
+  var g = d.idx;
+  // gallery mode
+  var mode = document.location.pathname == d.path + '/' ? 'gallery' : 'browser';
+  // galery initialized flag
+  var gallery_initialized = 0;
+  // index of current image/video in image browser mode
+  var item_idx;
 
-  if(evt instanceof Object) {
-    id = $(evt.target).attr('data-id');
-  } else {
-    id = evt;
+  //------------------------------------------------------------------------
+  //--- function for navigating between galleries --------------------------
+  //------------------------------------------------------------------------
+
+  function navigate(action)
+  {
+    // gallery navigation
+
+    if(mode == 'gallery') {
+      if(
+        !'navigate' in g             // no navigation directions defined
+        || !action in g.navigate     // this particular navigation not defined
+      ) { return; }
+      window.location.assign(g.navigate[action]);
+    }
+
+    // image browser navigation
+
+    else {
+      if(action == 'exit') {
+        item_idx = null; gallery();
+      }
+      if(action == 'prev' && item_idx != 0) {
+        item_idx--; browser();
+      }
+      if(action == 'next' && item_idx != g.items.length - 1) {
+        item_idx++; browser();
+      }
+      if(action == 'first') {
+        item_idx = 0; browser();
+      }
+      if(action == 'last') {
+        item_idx = g.items.length - 1; browser();
+      }
+    }
   }
 
-  //--- find the actual item by its item id
+  //------------------------------------------------------------------------
+  //--- function for setting the title -------------------------------------
+  //------------------------------------------------------------------------
 
-  n = g.items.findIndex(function(el) {
-    return el.id == id;
-  });
+  function set_window_title()
+  {
+    if(item_id) {
+      window.document.title = g.title + ' : ' + item_id;
+    } else {
+      window.document.title = g.title;
+    }
+  }
+
+  //------------------------------------------------------------------------
+  //--- function for setting the top of the gallery ------------------------
+  //------------------------------------------------------------------------
+
+  function gallery_top()
+  {
+    // date and title
+
+    if('date' in g) { $('span.date').text(g.date); }
+    if('title' in g) { $('span.title').text(g.title); }
+
+    // navigation elements
+
+    if(!'navigate' in g) { return; }
+    for(var nav in g.navigate) {
+      if(nav) {
+        $('a#nav-' + nav)
+          .attr('href', g.navigate[nav])
+          .css('display', 'inline-block');
+      }
+    }
+  }
+
+  //------------------------------------------------------------------------
+  //--- function for adding items to the gallery ---------------------------
+  //------------------------------------------------------------------------
+
+  function create_gallery_item(item)
+  {
+    var el;
+
+    if(item.type == 'image') {
+      el = $('<img>', { srcset: item.srcset });
+    } else if(item.type == 'video') {
+      el = $('<video></video>', { controls: "" });
+    }
+
+    el.attr({
+      src:       item.src,
+      width:     item.width,
+      height:    item.height,
+      "data-id": item.id
+    });
+
+    return el;
+  }
 
   //-------------------------------------------------------------------------
   //--- function for putting the image into DOM -----------------------------
@@ -163,190 +261,140 @@ function image_browser(evt, g)
     }
   }
 
-  //-------------------------------------------------------------------------
-  //--- function for navigating the image browser ---------------------------
-  //-------------------------------------------------------------------------
+  //------------------------------------------------------------------------
+  //--- function for handling the mosaiced gallery mode --------------------
+  //------------------------------------------------------------------------
 
-  function navigate(action)
+  function gallery()
   {
-    var upcoming;
+    // make gallery visible, if needed
 
-    // exit the browser
-    if(action == 'exit') {
-      kbd_handler_pop();
-      $('div.browser').off('click').empty().hide();
+    if(mode == 'browser') {
+      $('div.browser').hide();
       $('div.gallery').show();
-      $('div.mosaic').trigger('jqMosaicRefit');
+      set_window_title();
+      mode = 'gallery';
     }
+    //--- put in the images/videos and run the mosaic
 
-    // navigate to previous image
-    else if(action == 'prev' && n > 0) {
-      n = n - 1;
-      show_item(n);
-    }
+    if(!gallery_initialized) {
+      gallery_top();
+      for(var i = 0, max = g.items.length; i < max; i++) {
+        create_gallery_item(g.items[i])
+        .on('click', browser)
+        .appendTo('div.mosaic');
+      }
 
-    // navigate to next image
-    else if(action == 'next' && n < g.items.length - 1) {
-      n = n + 1;
-      show_item(n);
-    }
-
-    // navigate to the first image
-    else if(action == 'first') {
-      n = 0;
-      show_item(n);
-    }
-
-    // navigate to the last image
-    else if(action == 'last') {
-      n = g.items.length - 1;
-      show_item(n);
+      $('div.mosaic').Mosaic(
+        'jquery-mosaic' in g ? g["jquery-mosaic"] : {
+          "maxRowHeightPolicy" : "tail",
+          "innerGap" : 4
+        }
+      );
+      gallery_initialized = 1;
     }
   }
 
-  //--- hide the main gallery
+  //------------------------------------------------------------------------
+  //--- image browser ------------------------------------------------------
+  //------------------------------------------------------------------------
 
-  $('div.gallery').hide();
+  function browser(evt)
+  {
+    //--- process the argument
 
-  //--- put the image into DOM
+    // the argument to browser can be one these things:
+    //
+    // 1. String
+    // """""""""
+    // This is interpreted as item id and is used for deep-linking directly
+    // to images.
+    //
+    // 2. Click event, class 'browser'
+    // """""""""""""""""""""""""""""""
+    // This is caused by clicking on browser DIV in image browsing mode, this
+    // is interpreted as click to navigate the browser.
+    //
+    // 3. Click event
+    // """"""""""""""
+    // This is caused by invocation of click handler on gallery image in the
+    // mosaiced gallery mode. The code looks for "data-id" attribute to get
+    // image/video's item id.
+    //
+    // 4. None
+    // """""""
+    // Just use current value of 'item_idx', this is used for keyboard
+    // navigation where the handler exists outside of the browser code
 
-  show_item(n);
+    var item_id, nav;
 
-  //--- click handler
+    if(evt instanceof Object) {
+      // case 2, click on the browser DIV
+      if($(evt.currentTarget).hasClass('browser')) {
+        nav = click_action($(evt.currentTarget), evt);
+      }
+      // case 3, click on mosaiced gallery image/video element
+      else {
+        item_id = $(evt.target).attr('data-id');
+      }
+    } else if(evt) {
+      // case 1, item id submitted directly
+      item_id = evt;
+    }
 
-  // there are three evenly spaced vertical areas in the viewport, that
-  // when clicked do the following (numbered from 0 left-to-right):
-  // 0: go to prev image, 1: exit to the gallery, 2: go to next image
+    //--- mouse navigation handling
 
-  $('div.browser').on('click', function(evt) {
-    navigate(click_action($('div.browser'), evt));
-  });
+    if(nav) { navigate(nav); return; }
 
-  //--- keypress handler
+    //--- find the actual item by its item id
 
-  kbd_handler_push(function(evt) {
+    // this is only invoked when we are starting the browser up, which means
+    // there is no current message (with index 'item_idx'; this also means
+    // the 'item_id' is defined an is to be used to find the item
+
+    if(item_idx == null) {
+      item_idx = g.items.findIndex(function(el) {
+        return el.id == item_id;
+      });
+    }
+
+    //--- display one image
+
+    show_item(item_idx);
+
+    //--- make the browser visible, if needed
+
+    if(mode == 'gallery' || $('div.browser').is(':hidden')) {
+      $('div.gallery').hide();
+      $('div.browser').show();
+      mode = 'browser';
+    }
+
+  }
+
+  //------------------------------------------------------------------------
+  //--- MAIN ---------------------------------------------------------------
+  //------------------------------------------------------------------------
+
+  $(document).on('keydown', function(evt) {
     var nav = keycode_to_nav(evt.keyCode);
     if(!nav) {
       return true;
     } else {
-      navigate(nav); return false;
+      navigate(nav);
+      return false;
     }
   });
 
-  //--- make everything visible
+  $('div.browser').click(function(evt) {
+    browser(evt);
+  });
 
-  $('div.browser').show();
-}
-
-
-/*==========================================================================*
-  Render the gallery using the jquery.mosaic plugin.
- *==========================================================================*/
-
-function gallery(d, item_id)
-{
-  var g = d.idx;  // data from gallery's index.json
-
-  //------------------------------------------------------------------------
-  //--- function for navigating between galleries --------------------------
-  //------------------------------------------------------------------------
-
-  function navigate(action)
-  {
-    if(
-      !'navigate' in g             // no navigation directions defined
-      || !action in g.navigate     // this particular navigation not defined
-    ) { return; }
-
-    window.location.assign(g.navigate[action]);
-  }
-
-  //
-
-  if(item_id) {
-    image_browser(item_id, g);
-  }
-
-  //--- set document title
-
-  window.document.title = g.title;
-
-  //--- fill in date and title
-
-  if('date' in g) {
-    $('span.date').text(g.date);
-  }
-
-  if('title' in g) {
-    $('span.title').text(g.title);
-  }
-
-  //--- navigation elements (if specified)
-
-  if('navigate' in g) {
-    for(var nav in g.navigate) {
-      if(nav) {
-        $('a#nav-' + nav)
-          .attr('href', g.navigate[nav])
-          .css('display', 'inline-block');
-      }
-    }
-  }
-
-  //--- put in the images/videos
-
-  if('items' in g) {
-    for(var i = 0, max = g.items.length; i < max; i++) {
-      var item = g.items[i];
-
-      // image
-
-      if(item.type == 'image') {
-        $('<img>', {
-          src:       item.src,
-          srcset:    item.srcset,
-          width:     item.width,
-          height:    item.height,
-          "data-id": item.id,
-        })
-        .on('click', function(evt) { image_browser(evt, g) })
-        .appendTo('div.mosaic');
-      }
-
-      // video
-
-      else if(item.type == 'video') {
-        $('<video></video>', {
-          controls: "",
-          src:       item.src,
-          width:     item.width,
-          height:    item.height,
-          "data-id": item.id,
-        })
-        .appendTo('div.mosaic');
-      }
-    }
-
-    $('div.mosaic').Mosaic(
-      'jquery-mosaic' in g ? g["jquery-mosaic"] : {
-        "maxRowHeightPolicy" : "tail",
-        "innerGap" : 4
-      }
-    );
-
+  if(mode == 'gallery') {
+    gallery();
   } else {
-    $('<p>Sorry, this gallery seems to be misconfigured</p>')
-    .appendTo('body');
+    browser(item_id);
   }
-
-  //--- keyboard shortcus
-
-  kbd_handler_push(function(evt) {
-    if(evt.keyCode == 37) { navigate('prev'); return false; }
-    if(evt.keyCode == 39) { navigate('next'); return false; }
-    if(evt.keyCode == 27) { navigate('exit'); return false; }
-    return true;
-  });
 }
 
 
