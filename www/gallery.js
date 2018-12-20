@@ -123,6 +123,7 @@ function gallery(d, item_id)
 
       if(action == 'exit') {
         item_idx = null;
+        history.pushState({}, null, d.path + '/');
         gallery();
         return;
       }
@@ -141,6 +142,9 @@ function gallery(d, item_id)
 
       if(old_idx != item_idx) {
         browser();
+        history.pushState(
+          { id: g.items[item_idx].id }, null, d.path + '/' + g.items[item_idx].id + '/'
+        );
       }
     }
   }
@@ -299,7 +303,9 @@ function gallery(d, item_id)
           "innerGap" : 4
         }
       );
+
       gallery_initialized = 1;
+
     }
   }
 
@@ -343,11 +349,18 @@ function gallery(d, item_id)
       }
       // case 3, click on mosaiced gallery image/video element
       else {
+        item_idx = null;
         item_id = $(evt.target).attr('data-id');
+        // FIXME: This is the only place where we are pushing history entry
+        // withing the browser(). This is not very consistent.
+        history.pushState(
+          { id: item_id }, null, d.path + '/' + item_id + '/'
+        );
       }
     } else if(evt) {
       // case 1, item id submitted directly
       item_id = evt;
+      item_idx = null;
     }
 
     //--- mouse navigation handling
@@ -398,6 +411,15 @@ function gallery(d, item_id)
     }
   });
 
+  $(window).on('popstate', function(evt) {
+    var state = evt.originalEvent.state;
+    if(state && 'id' in state) {
+      browser(state.id);
+    } else {
+      gallery();
+    }
+  });
+
   $('div.browser').click(function(evt) {
     browser(evt);
   });
@@ -405,6 +427,9 @@ function gallery(d, item_id)
   if(mode == 'gallery') {
     gallery();
   } else {
+    history.replaceState(
+      { id: item_id }, null, d.path + '/' + item_id + '/'
+    );
     browser(item_id);
   }
 }
@@ -502,8 +527,9 @@ $(document).ready(function() {
 
   load_gallery_index().then(
     function(d, item_id) {
-      console.log('Loading successful, path=%s, itemid=%s', d.path, item_id);
+      // set document base URL to base of the gallery
       $('<base>').attr('href', d.path + '/').appendTo($('head'));
+      // invoke the gallery module
       gallery(d, item_id);
     },
     function(err) {
