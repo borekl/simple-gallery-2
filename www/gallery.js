@@ -285,8 +285,12 @@ function gallery(d, item_id)
       $('div.browser').hide();
       $('div.gallery').show();
       mode = 'gallery';
-      set_window_title();
     }
+
+    // set window title
+
+    set_window_title();
+
     //--- put in the images/videos and run the mosaic
 
     if(!gallery_initialized) {
