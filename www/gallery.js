@@ -119,20 +119,28 @@ function gallery(d, item_id)
     // image browser navigation
 
     else {
+      var old_idx = item_idx;
+
       if(action == 'exit') {
-        item_idx = null; gallery();
+        item_idx = null;
+        gallery();
+        return;
       }
       if(action == 'prev' && item_idx != 0) {
-        item_idx--; browser();
+        item_idx--;
       }
       if(action == 'next' && item_idx != g.items.length - 1) {
-        item_idx++; browser();
+        item_idx++;
       }
       if(action == 'first') {
-        item_idx = 0; browser();
+        item_idx = 0;
       }
       if(action == 'last') {
-        item_idx = g.items.length - 1; browser();
+        item_idx = g.items.length - 1;
+      }
+
+      if(old_idx != item_idx) {
+        browser();
       }
     }
   }
