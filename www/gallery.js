@@ -378,6 +378,10 @@ function gallery(d, item_id)
       mode = 'browser';
     }
 
+    //--- update window title
+
+    set_window_title();
+
   }
 
   //------------------------------------------------------------------------
