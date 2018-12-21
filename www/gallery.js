@@ -1,28 +1,5 @@
 (function() {
 
-var kbd = [];
-
-
-/*==========================================================================*
-  Keydown handler management.
- *==========================================================================*/
-
-function kbd_handler_push(callback)
-{
-  kbd.push(callback);
-  $(document).off('keydown').on('keydown', callback);
-}
-
-function kbd_handler_pop()
-{
-  $(document).off('keydown')
-  kbd.pop();
-  if(kbd.length) {
-    $(document).on('keydown', kbd[kbd.length - 1]);
-  }
-}
-
-
 /*==========================================================================*
   Convert keycode to navigation direction word.
  *==========================================================================*/
