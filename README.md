@@ -84,15 +84,48 @@ got produced.
 
 `gallery.html` contains a skeleton file for the gallery. This needs to be present
 in the gallery directory. You can either copy it there, or configure your web server
-to make it the default index for the directory or directories. In Apache this can
-be achieved by following config snippet:
-
-    <Directory /www/galleries>
-      DirectoryIndex /gallery/gallery.html
-    </Directory>
+serve it when accessing gallery directories.
 
 This skeleton file is your point of customization. Here you can link your own CSS
 stylesheet or modify the HTML itself.
+
+## Deep Linking and History
+
+The gallery allows linking directly to an image and it will correctly insert
+history entries into browser history for every nagivational action in the gallery.
+The URL in the URL bar will update accordingly and can always be used to get to exactly
+that point in the gallery by just using the same URL. For reference, if your gallery
+resides at:
+
+    https://www.myweb.com/gallery/
+
+Then deep-linked image `IMG_0001.jpg` will have following URL:
+
+    https://www.myweb.com/gallery/IMG_0001/
+
+## Web Server Setup
+
+The webserver needs to be setup as front-controller for the gallery (or galleries).
+Suppose we want any directory under `/photos` to be served as gallery. In Apache
+the front-controller setup can be achieved with following config:
+
+    <Directory /www/photos>
+      RewriteEngine On
+      RewriteBase "/photos/"
+      RewriteRule "\.json$" - [L]
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteRule . /lib/gallery/gallery.html [L]
+    </Directory>
+
+This achieves following things:
+
+* every request starting with /photos/ will be handled according to following rules
+* if the request is for file with `.json` suffix, that request will go through as usual
+* if the request is for file that exists on web server filesystem, the file will be served as usual
+* any other request will return as if it were requesting `/lib/gallery/gallery.html`
+
+Note, that this set up interferes with `DirectoryIndexes`. You can exclude specific paths
+by adding `RewriteRule` statements with the `[L]` target.
 
 ## Gallery Sets
 
