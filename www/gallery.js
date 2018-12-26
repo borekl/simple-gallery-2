@@ -87,8 +87,8 @@ function gallery(d, item_id)
 
     if(mode == 'gallery') {
       if(
-        !'navigate' in g             // no navigation directions defined
-        || !action in g.navigate     // this particular navigation not defined
+        !('navigate' in g)             // no navigation directions defined
+        || !(action in g.navigate)     // this nav direction not defined
       ) { return; }
       window.location.assign(g.navigate[action]);
     }
