@@ -359,6 +359,10 @@ function gallery(d, item_id)
         return el.id == item_id;
       });
     }
+    if(item_idx == -1) {
+      console.log('Gallery image/video "' + item_id + '" does not exist');
+      throw new Error('Gallery image/video "' + item_id + '" does not exist');
+    }
 
     //--- display one image
 
@@ -474,6 +478,12 @@ function load_gallery_index()
  *==========================================================================*/
 
 $(document).ready(function() {
+
+  //--- global error handler
+
+  $(window).on('error', function(e) {
+    console.log('Caught exception', e.originalEvent.error);
+  });
 
   //--- initialize Overlay Scrollbars library
 
