@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 #=============================================================================
-# Class to represent single video. Avprobe needs to be installed in the
-# system
+# Class to represent single video. ffprobe (part of ffmpeg) needs to be
+# available on the system.
 #=============================================================================
 
 package Video;
@@ -85,8 +85,8 @@ sub probe
   #--- read and decode avprobe output
 
   my $file = join('/', $self->gallery()->dir(), 'video', $self->filename());
-  open(my $fh, "avprobe -of json -show_streams $file 2>/dev/null |")
-    or die 'Failed to invoke avprobe';
+  open(my $fh, "ffprobe -v quiet -of json -show_streams $file |")
+    or die 'Failed to invoke ffprobe';
   my $vi_json = do { local $/; <$fh>; };
   my $vi = decode_json($vi_json);
   close($fh);
