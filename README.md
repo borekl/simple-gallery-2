@@ -1,4 +1,8 @@
+
 # simple-gallery-2
+
+**NOTE**: this application is now obsolete and was replaced by
+[gallerizr](https://github.com/borekl/gallerizr).
 
 Minimalistic no-frills image gallery that puts images/videos into the
 centre of user's experience. It supports responsive images,
